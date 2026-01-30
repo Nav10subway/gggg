@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Wi-Fi Neuro Lock</title>
+<style>
+body{
+  background:#020617;color:#e5e7eb;font-family:Arial;
+  display:flex;justify-content:center;align-items:center;height:100vh;
+}
+.box{
+  width:380px;border:2px solid #22d3ee;border-radius:14px;
+  padding:20px;text-align:center;box-shadow:0 0 25px rgba(34,211,238,.4);
+}
+h2{color:#22d3ee}
+.grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px;margin:15px 0
+}
+.cell{
+  height:90px;border:2px solid #334155;border-radius:12px;
+}
+.flash{background:#22d3ee}
+.fake{background:#0ea5e9}
+.good{background:#4ade80}
+.bad{background:#ef4444}
+button{
+  padding:8px 20px;border:none;border-radius:6px;
+  background:#22d3ee;font-weight:bold;cursor:pointer;
+}
+#msg{min-height:35px;margin-top:10px}
+.pass{color:#4ade80;font-size:22px;margin-top:10px}
+.level{color:#facc15}
+</style>
+</head>
+<body>
+
+<div class="box">
+<h2>📶 WI-FI Pass by Navi</h2>
+<p class="level" id="lvl"></p>
+<button onclick="start()">START</button>
+
+<div class="grid">
+  <div class="cell" data-i="0"></div><div class="cell" data-i="1"></div><div class="cell" data-i="2"></div>
+  <div class="cell" data-i="3"></div><div class="cell" data-i="4"></div><div class="cell" data-i="5"></div>
+  <div class="cell" data-i="6"></div><div class="cell" data-i="7"></div><div class="cell" data-i="8"></div>
+</div>
+
+<div id="msg"></div>
+<div class="pass" id="pass"></div>
+</div>
+
+<script>
+const cells=document.querySelectorAll(".cell");
+let seq=[],user=[],level=1,canClick=false;
+const MAX=10;
+
+function start(){
+  seq=[];user=[];level=1;
+  document.getElementById("pass").innerText="";
+  document.getElementById("msg").innerText="Focus. No mistakes.";
+  next();
+}
+
+function next(){
+  document.getElementById("lvl").innerText=`Level ${level} / ${MAX}`;
+  user=[];canClick=false;
+  seq.push(Math.floor(Math.random()*9));
+  show(0);
+}
+
+function show(i){
+  let speed = level < 9 ? 600-(level*45) : 220; // brutal speed for 9+
+  if(i>=seq.length){
+    if(level===9) fakeFlash(); // distraction
+    canClick=true;
+    return;
+  }
+  let c=cells[seq[i]];
+  c.classList.add("flash");
+  setTimeout(()=>{
+    c.classList.remove("flash");
+    setTimeout(()=>show(i+1),speed/2);
+  },speed);
+}
+
+function fakeFlash(){
+  let f = Math.floor(Math.random()*9);
+  cells[f].classList.add("fake");
+  setTimeout(()=>cells[f].classList.remove("fake"),120);
+}
+
+cells.forEach(c=>{
+  c.onclick=()=>{
+    if(!canClick) return;
+    let id=c.dataset.i;
+
+    // Level 10 = reverse input
+    let expected = level===10
+      ? seq[seq.length-user.length-1]
+      : seq[user.length];
+
+    user.push(id);
+
+    if(id!=expected){
+      fail("❌ Brain overload. Access denied.");
+      return;
+    }
+
+    c.classList.add("good");
+    setTimeout(()=>c.classList.remove("good"),100);
+
+    if(user.length===seq.length){
+      level++;
+      if(level>MAX){
+        win();
+      }else{
+        setTimeout(next,300);
+      }
+    }
+  }
+});
+
+function fail(text){
+  document.getElementById("msg").innerText=text;
+  canClick=false;
+}
+
+function win(){
+  document.getElementById("msg").innerText="✅ NEURAL AUTH COMPLETE";
+  document.getElementById("pass").innerText="📶 Wi-Fi Password: messi2003";
+  canClick=false;
+}
+</script>
+
+</body>
+</html>
